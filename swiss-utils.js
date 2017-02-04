@@ -9,6 +9,8 @@ function randomizedMatches(players) {
     matches.push({ white: players[i], black: players[i-1] })
   }
 
+  matches.forEach((match, i) => match.id = i)
+
   return matches
 }
 
@@ -73,9 +75,52 @@ function nextRound(tournament, path) {
   return firstRound
 }
 
+function lastRound(tournament) {
+  return tournament.rounds[tournament.rounds.length - 1]
+}
+
+function currentRound(tournament, path) {
+  const currentLastRound = lastRound(tournament)
+
+  if (!currentLastRound || !isRoundComplete(currentLastRound)) {
+    return nextRound(tournament, path)
+  }
+
+  return currentLastRound
+}
+
+function isRoundComplete(round) {
+  return round.every(isMatchComplete)
+}
+
+function isMatchComplete(match) {
+  return Boolean(match.winner)
+}
+
+function isMatchIncomplete(match) {
+  return !isMatchComplete(match)
+}
+
+function unfinishedMatches(round) {
+  return round.filter(isMatchIncomplete)
+}
+
+function saveResult(tournament, path, matchId, winner) {
+  const round = currentRound(tournament, path)
+  const match = round.find(match => match.id === matchId)
+  match.winner = winner
+
+  writeTournament(path, tournament)
+
+  return tournament
+}
+
 module.exports = {
   buildRound,
   createTournament,
   loadTournament,
-  nextRound
+  nextRound,
+  currentRound,
+  unfinishedMatches,
+  saveResult
 }
